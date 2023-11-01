@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "home/homepage.html" %}
 
 {% block content %}
+<div class="container-fluid">
     <h2>Tasks</h2>
     <a class="btn-floating btn-large waves-effect waves-light red" href="{% url 'task_create' %}"><i class="material-icons">add</i></a>
     <!-- Форма поиска -->
@@ -10,8 +11,8 @@
             <button type="submit" class="waves-effect waves-light btn">Search</button>
         </div>
     </form>
-    <div class="table-container">
-        <table class="highlight desktop-table">
+    <div class="table">
+        <table class="table">
             <!-- Таблица для компьютеров -->
             <thead>
                 <tr>
@@ -43,7 +44,9 @@
                 {% endfor %}
             </tbody>
         </table>
-        <!-- Мобильная разметка -->
+    </div>
+
+        {% comment %} <!-- Мобильная разметка -->
         <div class="mobile-table">
             {% for task in tasks %}
             <div class="table-row">
@@ -81,7 +84,33 @@
             </div>
             {% endfor %}
         </div>
-    </div>
+    </div> 
+
+
+    <style>
+        /* Стили для компьютеров */
+        .desktop-table {
+            display: block;
+        }
+
+        .mobile-table {
+            display: none;
+        }
+
+        /* Стили для мобильных устройств */
+        @media (max-width: 767px) {
+            .desktop-table {
+                display: none;
+            }
+            
+            .mobile-table {
+                display: block;
+            }
+        }
+
+        
+
+    </style> {% endcomment %}
     
     
     
@@ -108,29 +137,6 @@
         {% endif %}
     </ul>
 
-    <style>
-        /* Стили для компьютеров */
-        .desktop-table {
-            display: block;
-        }
-
-        .mobile-table {
-            display: none;
-        }
-
-        /* Стили для мобильных устройств */
-        @media (max-width: 767px) {
-            .desktop-table {
-                display: none;
-            }
-            
-            .mobile-table {
-                display: block;
-            }
-        }
-
-        
-
-    </style>
+    
 
 {% endblock %}

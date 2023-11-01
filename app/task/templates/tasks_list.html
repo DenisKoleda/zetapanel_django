@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Tasks</h2>
+    <a class="btn-floating btn-large waves-effect waves-light red" href="{% url 'task_create' %}"><i class="material-icons">add</i></a>
+    <!-- Форма поиска -->
+    <form method="get" action="">
+        <div class="input-field">
+            <input type="text" name="q" placeholder="Search tasks..." value="{{ request.GET.q }}" />
+            <button type="submit" class="waves-effect waves-light btn">Search</button>
+        </div>
+    </form>
+    <div class="table-container">
+        <table class="highlight desktop-table">
+            <!-- Таблица для компьютеров -->
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Author</th>
+                    <th>Ticket</th>
+                    <th>Ticket Comment</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr>
+                    <td data-column="ID">{{ task.id }}</td>
+                    <td data-column="Date">{{ task.date }}</td>
+                    <td data-column="Author">{{ task.author }}</td>
+                    <td data-column="Ticket"><a href="{% url 'task_edit' pk=task.id %}">{{ task.ticket }}</a></td>
+                    <td data-column="Ticket Comment">{{ task.ticket_comment }}</td>
+                    <td data-column="Actions">
+                        <a class="btn" href="{% url 'task_edit' task.id %}">Edit</a>
+                        <a class="btn red" href="{% url 'task_delete' task.id %}">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">No tasks available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Мобильная разметка -->
+        <div class="mobile-table">
+            {% for task in tasks %}
+            <div class="table-row">
+                <div class="table-cell">ID</div>
+                <div class="table-cell">{{ task.id }}</div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell">Date</div>
+                <div class="table-cell">{{ task.date }}</div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell">Author</div>
+                <div class="table-cell">{{ task.author }}</div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell">Ticket</div>
+                <div class="table-cell">
+                    <a href="{% url 'task_edit' pk=task.id %}">{{ task.ticket }}</a>
+                </div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell">Ticket Comment</div>
+                <div class="table-cell">{{ task.ticket_comment }}</div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell">Actions</div>
+                <div class="table-cell">
+                    <a class="btn" href="{% url 'task_edit' task.id %}">Edit</a>
+                    <a class="btn red" href="{% url 'task_delete' task.id %}">Delete</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="table-row">
+                <div class="table-cell" colspan="2">No tasks available.</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    
+    
+
+    <!-- Пагинация -->
+    <ul class="pagination">
+        {% if tasks.has_previous %}
+        <li class="waves-effect"><a href="?page=1"><i class="material-icons">first_page</i></a></li>
+        <li class="waves-effect"><a href="?page={{ tasks.previous_page_number }}"><i class="material-icons">chevron_left</i></a></li>
+        {% else %}
+        <li class="disabled"><a href="#!"><i class="material-icons">first_page</i></a></li>
+        <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
+        {% endif %}
+
+        <!-- Текущая страница и всего страниц -->
+        <li class="active"><a href="#!">{{ tasks.number }} of {{ tasks.paginator.num_pages }}</a></li>
+
+        {% if tasks.has_next %}
+        <li class="waves-effect"><a href="?page={{ tasks.next_page_number }}"><i class="material-icons">chevron_right</i></a></li>
+        <li class="waves-effect"><a href="?page={{ tasks.paginator.num_pages }}"><i class="material-icons">last_page</i></a></li>
+        {% else %}
+        <li class="disabled"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
+        <li class="disabled"><a href="#!"><i class="material-icons">last_page</i></a></li>
+        {% endif %}
+    </ul>
+
+    <style>
+        /* Стили для компьютеров */
+        .desktop-table {
+            display: block;
+        }
+
+        .mobile-table {
+            display: none;
+        }
+
+        /* Стили для мобильных устройств */
+        @media (max-width: 767px) {
+            .desktop-table {
+                display: none;
+            }
+            
+            .mobile-table {
+                display: block;
+            }
+        }
+
+        
+
+    </style>
+
+{% endblock %}

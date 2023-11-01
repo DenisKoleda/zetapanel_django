@@ -4,7 +4,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Task
 from .forms import TaskForm
 
-def task_list(request):
+def tasks_list(request):
     # Поиск: получение строки запроса, если она есть
     query = request.GET.get("q")
     object_list = Task.objects.all()
@@ -24,7 +24,7 @@ def task_list(request):
         # Если страница вне диапазона (например, 9999), возвращаем последнюю страницу результатов
         tasks = paginator.page(paginator.num_pages)
 
-    return render(request, 'task_list.html', {'page': page, 'tasks': tasks})
+    return render(request, 'tasks_list.html', {'page': page, 'tasks': tasks})
 
 def task_create(request):
     if request.method == "POST":

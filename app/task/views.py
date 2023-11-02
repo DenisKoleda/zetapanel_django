@@ -7,7 +7,8 @@ from .forms import TaskForm
 def tasks_list(request):
     # Поиск: получение строки запроса, если она есть
     query = request.GET.get("q")
-    object_list = Task.objects.all()
+    # Используем order_by() для упорядочивания объектов
+    object_list = Task.objects.all().order_by('id')  # Replace 'id' with the field you want to order by
     if query:
         object_list = object_list.filter(author__icontains=query)  # Можно добавить фильтры для других столбцов
 
@@ -25,6 +26,7 @@ def tasks_list(request):
         tasks = paginator.page(paginator.num_pages)
 
     return render(request, 'tasks_list.html', {'page': page, 'tasks': tasks})
+
 
 def task_create(request):
     if request.method == "POST":

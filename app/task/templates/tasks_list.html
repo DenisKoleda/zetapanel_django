@@ -1,50 +1,124 @@
 {% extends "home/homepage.html" %}
 
+{% block title %}<title>ZetaPanel | Все задачи</title>{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <h2>Tasks</h2>
-    <a class="btn-floating btn-large waves-effect waves-light red" href="{% url 'task_create' %}"><i class="material-icons">add</i></a>
-    <!-- Форма поиска -->
-    <form method="get" action="">
-        <div class="input-field">
-            <input type="text" name="q" placeholder="Search tasks..." value="{{ request.GET.q }}" />
-            <button type="submit" class="waves-effect waves-light btn">Search</button>
+<div class="container-lg mt-3">
+    <h2 class="">Все задачи</h2>
+    <a class="btn btn-primary" href="{% url 'task_create' %}"><i class="bi bi-plus-circle-fill"></i> Добавить</a>
+</div>
+
+<div class="container-lg">
+  <!-- Filter Button and Dropdown Menu -->
+  
+  <div class="mb-4 mt-4">
+      <div class="row">
+        <div class="col-4">
+          <button class="btn btn-secondary dropdown-toggle" type="button" id="filterMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+              Фильтры
+          </button>
+          <div class="dropdown-menu" aria-labelledby="filterMenuButton">
+              <!-- Your filter options here -->
+              <form id="filter-form">
+                  <!-- Add your filters here. For example: -->
+                  <div class="p-2">
+                      <label for="priorityFilter" class="form-label">Priority</label>
+                      <select id="priorityFilter" class="form-select">
+                          <option value="All">All</option>
+                          <option value="High">High</option>
+                          <option value="Medium">Medium</option>
+                          <option value="Low">Low</option>
+                      </select>
+                  </div>
+                  <div class="p-2">
+                      <label for="statusFilter" class="form-label">Status</label>
+                      <select id="statusFilter" class="form-select">
+                          <option value="All">All</option>
+                          <option value="Open">Open</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Closed">Closed</option>
+                      </select>
+                  </div>
+                  <!-- More filters can be added here -->
+                  <div class="px-2 pb-2">
+                      <button type="button" class="btn btn-success" onclick="applyFilters()">Применить</button>
+                      <button type="button" class="btn btn-outline-secondary" onclick="resetFilters()">Отменить</button>
+                  </div>
+              </form>
+            </div>
+          </div>
+          <form method="get" action="" class="col-8">
+            <div class="input-group">
+                <input type="text" class="form-control" name="q" placeholder="Search tasks..." value="{{ request.GET.q }}" />
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+          </form>
         </div>
-    </form>
-    <div class="table">
-        <table class="table">
-            <!-- Таблица для компьютеров -->
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Date</th>
-                    <th>Author</th>
-                    <th>Ticket</th>
-                    <th>Ticket Comment</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for task in tasks %}
-                <tr>
-                    <td data-column="ID">{{ task.id }}</td>
-                    <td data-column="Date">{{ task.date }}</td>
-                    <td data-column="Author">{{ task.author }}</td>
-                    <td data-column="Ticket"><a href="{% url 'task_edit' pk=task.id %}">{{ task.ticket }}</a></td>
-                    <td data-column="Ticket Comment">{{ task.ticket_comment }}</td>
-                    <td data-column="Actions">
-                        <a class="btn" href="{% url 'task_edit' task.id %}">Edit</a>
-                        <a class="btn red" href="{% url 'task_delete' task.id %}">Delete</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6">No tasks available.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
+  </div>
+</div>
+
+<div class="container-fluid">
+    <!-- Для больших экранов используем обычную таблицу -->
+    <div class="d-none d-md-block table-responsive">
+      <table class="table table-bordered table-sm align-middle table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Дата</th>
+              <th>Автор</th>
+              <th>Ticket</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Executor</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody class="table-group-divider">
+            {% for task in tasks %}
+            <tr>
+              <td data-column="ID"><a href="{% url 'task_edit' pk=task.id %}">{{ task.id }}</td>
+              <td data-column="Date">{{ task.date }}</td>
+              <td data-column="Author">{{ task.author }}</td>
+              <td data-column="Ticket"><a href="{% url 'task_edit' pk=task.id %}">{{ task.ticket }}</a></td>
+              <td data-column="Priority">{{ task.priority }}</td>
+              <td data-column="Status">{{ task.status }}</td>
+              <td data-column="Executor">{{ task.executor }}</td>
+              <td data-column="Actions">
+                <a class="btn btn-primary btn-sm" href="{% url 'task_edit' task.id %}">Перейти</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No tasks available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+    <!-- Для маленьких экранов используем вертикальное отображение -->
+    <div class="d-block d-md-none">
+        {% for task in tasks %}
+        <div class="card mb-3">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>ID:</strong> {{ task.id }}</li>
+                <li class="list-group-item"><strong>Date:</strong> {{ task.date }}</li>
+                <li class="list-group-item"><strong>Author:</strong> {{ task.author }}</li>
+                <li class="list-group-item"><strong>Ticket:</strong> <a href="{% url 'task_edit' pk=task.id %}">{{ task.ticket }}</a></li>
+                <li class="list-group-item">
+                    <a class="btn btn-primary" href="{% url 'task_edit' task.id %}">Перейти</a>
+                </li>
+            </ul>
+        </div>
+        {% empty %}
+        <div class="alert alert-warning" role="alert">
+            No tasks available.
+        </div>
+        {% endfor %}
+    </div>
+</div>
 
         {% comment %} <!-- Мобильная разметка -->
         <div class="mobile-table">
@@ -85,58 +159,68 @@
             {% endfor %}
         </div>
     </div> 
-
-
-    <style>
-        /* Стили для компьютеров */
-        .desktop-table {
-            display: block;
-        }
-
-        .mobile-table {
-            display: none;
-        }
-
-        /* Стили для мобильных устройств */
-        @media (max-width: 767px) {
-            .desktop-table {
-                display: none;
-            }
-            
-            .mobile-table {
-                display: block;
-            }
-        }
-
-        
-
-    </style> {% endcomment %}
-    
-    
+{% endcomment %}
     
 
     <!-- Пагинация -->
-    <ul class="pagination">
-        {% if tasks.has_previous %}
-        <li class="waves-effect"><a href="?page=1"><i class="material-icons">first_page</i></a></li>
-        <li class="waves-effect"><a href="?page={{ tasks.previous_page_number }}"><i class="material-icons">chevron_left</i></a></li>
-        {% else %}
-        <li class="disabled"><a href="#!"><i class="material-icons">first_page</i></a></li>
-        <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
-        {% endif %}
-
-        <!-- Текущая страница и всего страниц -->
-        <li class="active"><a href="#!">{{ tasks.number }} of {{ tasks.paginator.num_pages }}</a></li>
-
-        {% if tasks.has_next %}
-        <li class="waves-effect"><a href="?page={{ tasks.next_page_number }}"><i class="material-icons">chevron_right</i></a></li>
-        <li class="waves-effect"><a href="?page={{ tasks.paginator.num_pages }}"><i class="material-icons">last_page</i></a></li>
-        {% else %}
-        <li class="disabled"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
-        <li class="disabled"><a href="#!"><i class="material-icons">last_page</i></a></li>
-        {% endif %}
-    </ul>
-
-    
+    <div class="container-lg">
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-end">
+          {% if tasks.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page=1" aria-label="First">
+              <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ tasks.previous_page_number }}" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+          {% else %}
+          <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="First">
+              <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+          </li>
+          <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+          {% endif %}
+      
+          <!-- Текущая страница и всего страниц -->
+          <li class="page-item active" aria-current="page">
+            <span class="page-link">{{ tasks.number }} из {{ tasks.paginator.num_pages }}</span>
+          </li>
+      
+          {% if tasks.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ tasks.next_page_number }}" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ tasks.paginator.num_pages }}" aria-label="Last">
+              <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+          </li>
+          {% else %}
+          <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+          <li class="page-item disabled">
+            <a class="page-link" href="#" aria-label="Last">
+              <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+      
 
 {% endblock %}

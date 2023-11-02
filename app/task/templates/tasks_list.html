@@ -42,7 +42,7 @@
                   <!-- More filters can be added here -->
                   <!-- Add a hidden input for the query string -->
                   {% if request.GET.q %}
-                      <input type="hidden" name="q" value="{{ request.GET.q }}">
+                      <input type="hidden" name="q" value="{{ request.GET.task }}">
                   {% endif %}
                   <div class="px-2 pb-2">
                     <button type="submit" class="btn btn-success">Применить</button>
@@ -59,7 +59,7 @@
                 {% if request.GET.status %}
                     <input type="hidden" name="status" value="{{ request.GET.status }}">
                 {% endif %}
-              <input type="text" class="form-control" name="q" placeholder="Поиск задач..." value="{{ request.GET.q }}" />
+              <input type="text" class="form-control" name="task" placeholder="Поиск задач..." value="{{ request.GET.task }}" />
               <button type="submit" class="btn btn-primary">Поиск</button>
           </div>
           </form>
@@ -74,7 +74,7 @@
     var url = new URL(window.location.href);
     url.searchParams.delete('priority');
     url.searchParams.delete('status');
-    url.searchParams.delete('q');
+    url.searchParams.delete('task');
     window.location.href = url.href; // This will reload the page with updated URL
   }
 </script>

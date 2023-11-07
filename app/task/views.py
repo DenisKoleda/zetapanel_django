@@ -1,12 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Task
 from .forms import TaskForm
 
 def tasks_list(request):
     # Поиск: получение строки запроса, если она есть
-    query = request.GET.get("q")
+    query = request.GET.get("task")
     # Используем order_by() для упорядочивания объектов
     object_list = Task.objects.all().order_by('id')  # Replace 'id' with the field you want to order by
     if query:
@@ -24,6 +24,18 @@ def tasks_list(request):
     except EmptyPage:
         # Если страница вне диапазона (например, 9999), возвращаем последнюю страницу результатов
         tasks = paginator.page(paginator.num_pages)
+        
+    if query:
+        # Собираем данные для JSON ответа
+        tasks_data = list(tasks.object_list.values())  # Преобразуем queryset в список словарей
+        data = {
+            'tasks': tasks_data,
+            'page': page,
+            'total_pages': paginator.num_pages,
+        }
+
+        # Возвращаем JSON ответ
+        return JsonResponse(data)
 
     return render(request, 'tasks_list.html', {'page': page, 'tasks': tasks})
 

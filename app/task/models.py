@@ -5,7 +5,7 @@ class Task(models.Model):
     date = models.DateField("date published")
     author = models.CharField(max_length=200)
     ticket = models.CharField(max_length=200)
-    ticket_comment = models.TextField()  # Это поле предназначено для длинных строк текста
+    ticket_comment = models.TextField(blank=True, null=True)  # Это поле предназначено для длинных строк текста
     priority = models.CharField(max_length=200)
     status = models.CharField(max_length=200)
     executor = models.CharField(max_length=200)

@@ -1,43 +1,24 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, QueryDict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Task
 from .forms import TaskForm
 
 def tasks_list(request):
-    # Поиск: получение строки запроса, если она есть
-    query = request.GET.get("task")
-    # Используем order_by() для упорядочивания объектов
-    object_list = Task.objects.all().order_by('id')  # Replace 'id' with the field you want to order by
-    if query:
-        object_list = object_list.filter(author__icontains=query)  # Можно добавить фильтры для других столбцов
+    object_list = Task.objects.all().order_by('id')
 
-    # Пагинация
-    paginator = Paginator(object_list, 10)  # 10 задач на странице
+    paginator = Paginator(object_list, 4)
     page = request.GET.get('page')
 
     try:
         tasks = paginator.page(page)
     except PageNotAnInteger:
-        # Если страница не является целым числом, возвращаем первую страницу
         tasks = paginator.page(1)
     except EmptyPage:
-        # Если страница вне диапазона (например, 9999), возвращаем последнюю страницу результатов
         tasks = paginator.page(paginator.num_pages)
-        
-    if query:
-        # Собираем данные для JSON ответа
-        tasks_data = list(tasks.object_list.values())  # Преобразуем queryset в список словарей
-        data = {
-            'tasks': tasks_data,
-            'page': page,
-            'total_pages': paginator.num_pages,
-        }
-
-        # Возвращаем JSON ответ
-        return JsonResponse(data)
 
     return render(request, 'tasks_list.html', {'page': page, 'tasks': tasks})
+
 
 
 def task_create(request):

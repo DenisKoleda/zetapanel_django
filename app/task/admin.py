@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Task
+from .models import Task, Comment
 
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('date', 'author', 'ticket', 'priority', 'status', 'executor', 'deadline')
@@ -7,3 +7,4 @@ class TaskAdmin(admin.ModelAdmin):
     search_fields = ['author', 'ticket', 'ticket_comment', 'priority', 'status', 'executor']
 
 admin.site.register(Task, TaskAdmin)
+admin.site.register(Comment)

@@ -94,7 +94,7 @@
               <td data-column="Date">{{ task.date }}</td>
               <td data-column="Author">{{ task.author }}</td>
               <td data-column="Ticket" class="align-left text-start">
-                <a href="{% url 'task_edit' pk=task.id %}" 
+                <a href="{% url 'task_view' pk=task.id %}" 
                    data-bs-toggle="tooltip" 
                    data-bs-placement="top" 
                    title="{{ task.ticket }}">
@@ -111,7 +111,7 @@
                     <i class="bi bi-three-dots-vertical"></i>
                   </button>
                   <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                    <li><a class="dropdown-item" href="{% url 'task_edit' task.id %}">Просмотреть</a></li>
+                    <li><a class="dropdown-item" href="{% url 'task_view' task.id %}">Просмотреть</a></li>
                     <li>
                       <hr class="dropdown-divider">
                     </li>
@@ -139,7 +139,7 @@
                 <li class="list-group-item"><strong>ID:</strong> {{ task.id }}</li>
                 <li class="list-group-item"><strong>Дата:</strong> {{ task.date }}</li>
                 <li class="list-group-item"><strong>Автор:</strong> {{ task.author }}</li>
-                <li class="list-group-item"><strong>Задача:</strong> <a href="{% url 'task_edit' pk=task.id %}">{{ task.ticket|truncatechars:33 }}</a></li>
+                <li class="list-group-item"><strong>Задача:</strong> <a href="{% url 'task_view' pk=task.id %}">{{ task.ticket|truncatechars:33 }}</a></li>
                 <li class="list-group-item"><strong>Приоритет:</strong> {{ task.priority }}</li>
                 <li class="list-group-item"><strong>Статус:</strong> {{ task.status }}</li>
                 <li class="list-group-item"><strong>Назначена:</strong> {{ task.executor }}</li>
@@ -149,7 +149,7 @@
                       <a><i class="bi bi-three-dots-vertical"></i>Действия</a>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                      <li><a class="dropdown-item" href="{% url 'task_edit' task.id %}">Просмотреть</a></li>
+                      <li><a class="dropdown-item" href="{% url 'task_view' task.id %}">Просмотреть</a></li>
                       <li>
                         <hr class="dropdown-divider">
                       </li>

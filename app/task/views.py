@@ -54,12 +54,6 @@ def task_delete(request, pk):
 def task_view(request, pk):
     task = get_object_or_404(Task, pk=pk)
     comments = Comment.objects.filter(task=task).order_by('-created_at')
-    
-    if request.method == 'POST':
-        content = request.POST.get('content')
-        author = request.user
-        comment = Comment.objects.create(task=task, author=author, content=content)
-        # Optionally, you can perform additional actions after creating the comment
         
     return render(request, 'task_view.html', {'task': task, 'comments': comments})
 
@@ -70,11 +64,14 @@ def add_comment(request, pk):
         author = request.user
         comment = Comment.objects.create(task=task, author=author, content=content)
         # Optionally, you can perform additional actions after creating the comment
-    return HttpResponseRedirect(reverse('task_view', args=[pk]))
+        return HttpResponseRedirect(reverse('task_view', args=[pk]))
+    return HttpResponse('Invalid request method')
 
 def delete_comment(request, pk, comment_id):
     if request.method == 'POST':
         comment = get_object_or_404(Comment, id=comment_id)
         comment.delete()
         # Optionally, you can perform additional actions after deleting the comment
-    return HttpResponseRedirect(reverse('task_view', args=[pk]))
+        return HttpResponseRedirect(reverse('task_view', args=[pk]))
+    return HttpResponse('Invalid request method')
+

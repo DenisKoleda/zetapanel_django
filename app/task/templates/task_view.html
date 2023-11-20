@@ -41,7 +41,14 @@
     <div class="card mt-2">
         <div class="card-body">
             <h5 class="card-title">Файлы</h5>
-            <p class="card-text">...</p>
+            <ul>
+                {% for file in files %}
+                <li>
+                    <a href="{{ file.file.url }}" download>{{ file.description|default:file.file.name }}</a>
+                    <span class="text-muted">({{ file.created_at }})</span>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
     <div class="card mt-3">
@@ -93,7 +100,7 @@
                 icon: 'error',
                 title: 'Ошибка',
                 text: 'Комментарий не может быть пустым',
-                timer: 2000,
+                timer: 1500,
                 timerProgressBar: true,
                 didOpen: () => {
                     Swal.showLoading();

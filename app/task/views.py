@@ -2,13 +2,30 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse, QueryDict, HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.urls import reverse
-from .models import Task, Comment
-from .forms import TaskForm
+from .models import Task, Comment, FileAttachment
+from .forms import TaskForm, FileUploadForm
+from django.template.loader import render_to_string
+
 
 def tasks_list(request):
-    object_list = Task.objects.all().order_by('id')
+    return render(request, 'task_list/index.html')
 
-    paginator = Paginator(object_list, 4)
+
+def table_view(request):
+    # Получение значений фильтров из request.GET
+    priority = request.GET.get('priority')
+    status = request.GET.get('status')
+    
+    # Применение фильтров к запросу данных
+    object_list = Task.objects.all().order_by('id')
+    
+    if priority:
+        object_list = object_list.filter(priority=priority)
+    
+    if status:
+        object_list = object_list.filter(status=status)
+
+    paginator = Paginator(object_list, 2)
     page = request.GET.get('page')
 
     try:
@@ -17,9 +34,8 @@ def tasks_list(request):
         tasks = paginator.page(1)
     except EmptyPage:
         tasks = paginator.page(paginator.num_pages)
-
-    return render(request, 'tasks_list.html', {'page': page, 'tasks': tasks})
-
+        
+    return render(request, 'task_list/htmx/table.html', {'page': page, 'tasks': tasks})
 
 
 def task_create(request):
@@ -54,8 +70,9 @@ def task_delete(request, pk):
 def task_view(request, pk):
     task = get_object_or_404(Task, pk=pk)
     comments = Comment.objects.filter(task=task).order_by('-created_at')
+    files = FileAttachment.objects.filter(task=task).order_by('-created_at')
         
-    return render(request, 'task_view.html', {'task': task, 'comments': comments})
+    return render(request, 'task_view.html', {'task': task, 'comments': comments, 'files': files})
 
 def add_comment(request, pk):
     if request.method == 'POST':
@@ -74,4 +91,3 @@ def delete_comment(request, pk, comment_id):
         # Optionally, you can perform additional actions after deleting the comment
         return HttpResponseRedirect(reverse('task_view', args=[pk]))
     return HttpResponse('Invalid request method')
-

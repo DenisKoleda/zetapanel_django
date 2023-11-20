@@ -9,5 +9,6 @@ urlpatterns = [
     path('<int:pk>/view/', views.task_view, name='task_view'),
     path('<int:pk>/add_comment/', views.add_comment, name='add_comment'),
     path('<int:pk>/delete_comment/<int:comment_id>/', views.delete_comment, name='delete_comment'),
+    path('table/', views.table_view, name='table-view'),
     
 ]

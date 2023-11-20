@@ -1,4 +1,5 @@
-{% extends "base.html" %}
+{% extends "home/homepage.html" %}
+{% load static %}
 
 {% block content %}
     <h2>{% if form.instance.pk %}Edit{% else %}New{% endif %} Task</h2>

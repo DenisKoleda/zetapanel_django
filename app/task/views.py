@@ -15,6 +15,7 @@ def table_view(request):
     # Получение значений фильтров из request.GET
     priority = request.GET.get('priority')
     status = request.GET.get('status')
+    page_length = request.GET.get('page_length')
     
     # Применение фильтров к запросу данных
     object_list = Task.objects.all().order_by('id')
@@ -25,7 +26,7 @@ def table_view(request):
     if status:
         object_list = object_list.filter(status=status)
 
-    paginator = Paginator(object_list, 2)
+    paginator = Paginator(object_list, page_length or 10)
     page = request.GET.get('page')
 
     try:

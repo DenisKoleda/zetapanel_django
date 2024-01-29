@@ -25,19 +25,28 @@
                 <label for="priorityFilter" class="form-label">Приоритет</label>
                 <select id="priorityFilter" name="priority" class="form-select">
                     <option value="">All</option>
-                    <option value="High" {% if request.GET.priority == 'High' %}selected{% endif %}>High</option>
-                    <option value="Medium" {% if request.GET.priority == 'Medium' %}selected{% endif %}>Medium</option>
-                    <option value="Low" {% if request.GET.priority == 'Low' %}selected{% endif %}>Low</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
                 </select>
             </div>
             <div class="p-2">
               <label for="statusFilter" class="form-label">Статус</label>
               <select id="statusFilter" name="status" class="form-select">
                   <option value="">All</option>
-                  <option value="Open" {% if request.GET.status == 'Open' %}selected{% endif %}>Open</option>
-                  <option value="In Progress" {% if request.GET.status == 'In Progress' %}selected{% endif %}>In Progress</option>
-                  <option value="Closed" {% if request.GET.status == 'Closed' %}selected{% endif %}>Closed</option>
+                  <option value="Open">Open</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Closed">Closed</option>
               </select>
+          </div>
+          <div class="p-2">
+            <label for="lenghFilter" class="form-label">Колличество строк</label>
+            <select id="lenghFilter" name="page_length" class="form-select">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
           </div>
               <!-- More filters can be added here -->
               <div class="px-2 pb-2">

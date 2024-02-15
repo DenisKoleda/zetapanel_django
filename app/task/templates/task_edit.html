@@ -2,10 +2,44 @@
 {% load static %}
 
 {% block content %}
-    <h2>{% if form.instance.pk %}Edit{% else %}New{% endif %} Task</h2>
-    <form method="post" class="col s12">
+<div class="container mt-3">
+    <h2>{% if form.instance.pk %}Изменить Задачу{% else %}Новая Задача{% endif %}</h2>
+    <form method="post" class="row g-3">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button class="btn waves-effect waves-light" type="submit">Save</button>
+        <div class="col-12">
+            <div class="form-group">
+                <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                {{ form.title }}
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                {{ form.description }}
+            </div>
+        </div>
+        {% for field in form.visible_fields %}
+            {% if field.name in fields %}
+                <div class="col-12">
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        <div class="input-group">
+                            {{ field }}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-12">
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+        <div class="col-12">
+            <button class="btn btn-primary" type="submit">Сохранить</button>
+        </div>
     </form>
+</div>
 {% endblock %}

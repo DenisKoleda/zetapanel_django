@@ -22,20 +22,30 @@
                             <i class="bi bi-calendar3"></i> Дата: {{ task.date | date:"j F, Y" }}
                         </li>
                         <li class="list-group-item">
-                            <i class="bi bi-person-fill"></i> Автор: {{ task.author }}
+                            {% if task.author.first_name and task.author.last_name %}
+                            <i class="bi bi-person-fill"></i> Автор: {{ task.author.first_name }} {{ task.author.last_name }}
+                            {% else %}
+                            <i class="bi bi-person-fill"></i> Автор: {{ task.author|default_if_none:"Неизвестно" }}
+                            {% endif %}
                         </li>
                         <li class="list-group-item">
-                            <i class="bi bi-exclamation-triangle-fill"></i> Приоритет: {{ task.priority }}
+                            <i class="bi bi-exclamation-triangle-fill"></i> Приоритет: {{ task.get_priority_display }}
                         </li>
                         <li class="list-group-item">
-                            <i class="bi bi-toggle-on"></i> Статус: {{ task.status }}
+                            <i class="bi bi-toggle-on"></i> Статус: {{ task.get_status_display }}
                         </li>
                         <li class="list-group-item">
-                            <i class="bi bi-person-check-fill"></i> Назначена: {{ task.executor }}
+                            {% if task.executor.first_name and task.executor.last_name %}
+                            <i class="bi bi-person-check-fill"></i> Назначена: {{ task.executor.first_name }} {{ task.executor.last_name }}
+                            {% else %}
+                            <i class="bi bi-person-check-fill"></i> Назначена: {{ task.executor|default_if_none:"Не назначено" }}
+                            {% endif %}
                         </li>
+                        {% if task.deadline %}
                         <li class="list-group-item">
                             <i class="bi bi-hourglass-split"></i> Дедлайн: {{ task.deadline | date:"j F, Y" }}
                         </li>
+                        {% endif %}
                     </ul>
                     <a href="#" class="btn btn-primary mt-3">Изменить</a>
                 </div>
@@ -82,7 +92,7 @@
             <div class="card mt-3">
                 <div class="card-body">
                     <h5 class="card-title mb-3">Комментарии</h5>
-                    <form action="{% url 'add_comment' task.id %}" method="POST" class="mb-3" onsubmit="return validateCommentForm()">
+                    <form action="{% url 'add_comment' task.id %}" method="POST" class="mb-3" onsubmit="validateCommentForm()">
                         {% csrf_token %}
                         <textarea name="content" class="form-control mb-3" placeholder="Напишите комментарий" rows="2" style="resize: none; overflow-y: hidden; height: 60px;" oninput="autoResize(this)"></textarea>
                         <button type="submit" class="btn btn-primary">Добавить комментарий</button>
@@ -94,12 +104,10 @@
                             <h6 class="mb-1"><i class="bi bi-person-fill"></i> {{ comment.author.first_name }} {{ comment.author.last_name }} <small class="text-muted">({{ comment.created_at | date:"H:i j.m.Y" }})</small></h6>
                             <div>
                                 {% if request.user == comment.author %}
-                                <form action="{% url 'delete_comment' task.id comment.id %}" method="POST" class="d-inline">
-                                    {% csrf_token %}
-                                    <a type="submit" aria-label="Удалить комментарий" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить комментарий">
-                                        <i class="bi bi-x-lg text-danger"></i>
-                                    </a>
-                                </form>
+                                {% csrf_token %}
+                                <a href="{% url 'delete_comment' task.id comment.id %}" onclick="return confirm('Вы уверены, что хотите удалить комментарий?')" aria-label="Удалить комментарий" data-bs-toggle="tooltip" data-bs-placement="top" title="Удалить комментарий">
+                                    <i class="bi bi-x-lg text-danger"></i>
+                                </a>
                                 {% endif %}
                             </div>
                         </div>
@@ -113,7 +121,7 @@
         </div>
     </div>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     function autoResize(textarea) {
       textarea.style.height = 'auto';  // Сбрасываем высоту до автоматической

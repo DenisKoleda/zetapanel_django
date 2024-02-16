@@ -20,7 +20,11 @@
             <tr>
               <td data-column="ID"><a href="{% url 'task_edit' pk=task.id %}">{{ task.id }}</a></td>
               <td data-column="Date">{{ task.date }}</td>
-              <td data-column="Author">{{ task.author }}</td>
+              {% if task.author.first_name and task.author.last_name %}
+              <td data-column="Author">{{ task.author.first_name }} {{ task.author.last_name }}</td>
+              {% else %}
+              <td data-column="Author">{{ task.author|default_if_none:""}}</td>
+              {% endif %}
               <td data-column="Ticket" class="align-left text-start">
                 <a href="{% url 'task_view' pk=task.id %}" 
                    data-bs-toggle="tooltip" 
@@ -29,9 +33,13 @@
                   {{ task.ticket|truncatechars:30 }}
                 </a>
               </td>
-              <td data-column="Priority">{{ task.priority }}</td>
-              <td data-column="Status">{{ task.status }}</td>
-              <td data-column="Executor">{{ task.executor }}</td>
+              <td data-column="Priority">{{ task.get_priority_display }}</td>
+              <td data-column="Status">{{ task.get_status_display }}</td>
+              {% if task.executor.first_name and task.executor.last_name %}
+              <td data-column="Executor">{{ task.executor.first_name }} {{ task.executor.last_name }}</td>
+              {% else %}
+              <td data-column="Executor">{{ task.executor|default_if_none:"" }}</td>
+              {% endif %}
               <td data-column="Actions">
                 <!-- Dropdown button -->
                 <div class="dropdown">

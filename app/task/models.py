@@ -32,37 +32,39 @@ class ChecklistItem(models.Model):
 
 class Task(models.Model):
     date = models.DateField("Дата публикации")
-    author = models.CharField("Автор", max_length=200)
+    author = models.ForeignKey(
+        User, verbose_name="Автор", on_delete=models.CASCADE, related_name='author_tasks')
     ticket = models.CharField("Тикет", max_length=200)
     ticket_comment = models.TextField(
         "Комментарий к тикету", blank=True, null=True)
     priority_choices = [
-        (1, 'Низкий'),
-        (2, 'Средний'),
-        (3, 'Высокий'),
-        (4, 'Очень высокий'),
-        (5, 'Критический'),
+        ('low', 'Низкий'),
+        ('medium', 'Средний'),
+        ('high', 'Высокий'),
+        ('very_high', 'Очень высокий'),
+        ('critical', 'Критический'),
     ]
     priority = models.CharField(
-        "Приоритет", max_length=200, choices=priority_choices, default='1')
+        "Приоритет", max_length=200, choices=priority_choices, default='low')
     status_choices = [
-        (1, 'Создано'),
-        (2, 'В работе'),
-        (3, 'Завершено'),
-        (4, 'Отложено'),
-        (5, 'Отменено'),
-        (6, 'В ожидании'),
-        (7, 'В планах'),
-        (8, 'На проверке'),
-        (9, 'На доработке'),
-        (10, 'На утверждении'),
-        (11, 'На согласовании'),
+        ('created', 'Создано'),
+        ('in_progress', 'В работе'),
+        ('completed', 'Завершено'),
+        ('postponed', 'Отложено'),
+        ('canceled', 'Отменено'),
+        ('pending', 'В ожидании'),
+        ('planned', 'В планах'),
+        ('under_review', 'На проверке'),
+        ('under_revision', 'На доработке'),
+        ('under_approval', 'На утверждении'),
+        ('under_consideration', 'На согласовании'),
     ]
     status = models.CharField("Статус", max_length=200,
                               choices=status_choices, default='1')
     executor = models.ForeignKey(
-        User, verbose_name="Исполнитель", on_delete=models.CASCADE)
-    deadline = models.DateField("Срок", blank=True, null=True)
+        User, verbose_name="Исполнитель", on_delete=models.CASCADE, related_name='executor_tasks', blank=True, null=True)
+
+    deadline = models.DateField("Дедлайн", blank=True, null=True)
     checklist_template = models.ForeignKey(
         ChecklistTemplate, verbose_name="Шаблон чеклиста", on_delete=models.SET_NULL, blank=True, null=True)
 

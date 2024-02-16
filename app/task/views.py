@@ -8,22 +8,32 @@ from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 import os
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 
 
 @login_required
 def tasks_list(request):
     # Получение значений фильтров из request.GET
+    q = request.GET.get('q')
     priority = request.GET.get('priority')
     status = request.GET.get('status')
     page_length = request.GET.get('page_length')
 
+    priority_choices = Task._meta.get_field('priority').choices
+    status_choices = Task._meta.get_field('status').choices
+
     # Применение фильтров к запросу данных
     object_list = Task.objects.all().order_by('id')
 
-    if priority:
+    if q:
+        object_list = object_list.filter(
+            Q(ticket__icontains=q.lower()) |
+            Q(ticket_comment__icontains=q.lower()))
+
+    if priority != 'all' and priority:
         object_list = object_list.filter(priority=priority)
 
-    if status:
+    if status != 'all' and status:
         object_list = object_list.filter(status=status)
 
     paginator = Paginator(object_list, page_length or 10)
@@ -36,7 +46,7 @@ def tasks_list(request):
     except EmptyPage:
         tasks = paginator.page(paginator.num_pages)
 
-    return render(request, 'tasklist/index.html', {'page': page, 'tasks': tasks})
+    return render(request, 'tasklist/index.html', {'page': page, 'tasks': tasks, 'priority_choices': priority_choices, 'status_choices': status_choices})
 
 
 def task_create(request):
@@ -91,7 +101,7 @@ def add_comment(request, pk):
 
 
 def delete_comment(request, pk, comment_id):
-    if request.method == 'POST':
+    if request.method == 'GET':
         comment = get_object_or_404(Comment, id=comment_id)
         comment.delete()
         # Optionally, you can perform additional actions after deleting the comment

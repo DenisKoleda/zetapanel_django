@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Task, Comment, FileAttachment, ChecklistTemplate, ChecklistItem
+from .models import Task, Comment, FileAttachment, ChecklistTemplate, ChecklistItem, ChecklistItemStatus
+
+# Register your models here.
 
 
 class ChecklistItemInline(admin.TabularInline):
@@ -33,3 +35,10 @@ class FileAttachmentAdmin(admin.ModelAdmin):
     list_display = ('id', 'task', 'author', 'file', 'created_at')
     list_filter = ('task', 'author', 'created_at')
     search_fields = ['author', 'file']
+
+
+@admin.register(ChecklistItemStatus)
+class ChecklistItemStatusAdmin(admin.ModelAdmin):
+    list_display = ('id', 'task', 'item')
+    list_filter = ('task', 'item')
+    search_fields = ['task', 'item']

@@ -1,15 +1,15 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, HttpResponseRedirect
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.urls import reverse
-from .models import Task, Comment, FileAttachment
-from .forms import TaskForm, FileUploadForm
-from django.http import FileResponse, Http404
-from django.shortcuts import get_object_or_404
-import os
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Count, Q
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from .forms import TaskForm, FileUploadForm
+from .models import Task, Comment, FileAttachment, ChecklistItemStatus
+import datetime
+import os
+from django.views.decorators.http import require_POST
 
 
 @login_required
@@ -155,3 +155,58 @@ def delete_file(request, pk):
     file.delete()
     # Replace 'task_view' with the name of the view you want to redirect to
     return redirect('task_view', pk=file.task.pk)
+
+
+# TODO: Добавить страницу статистики с фильтрами по дате и исполнителю
+def task_statistics(request):
+    # Получить все задачи за определенный срок(день, неделя, месяц или дата от и до) из request.GET.filter или из request.GET.time_filter
+    # date_from = request.GET.get('date_from')
+    # date_to = request.GET.get('date_to')
+    time_filter = request.GET.get('time_filter')
+
+    if time_filter == 'day':
+        _tasks = Task.objects.filter(
+            date=datetime.date.today())
+    elif time_filter == 'week':
+        _tasks = Task.objects.filter(date__range=[
+            datetime.date.today() - datetime.timedelta(days=7), datetime.date.today()])
+    elif time_filter == 'month':
+        _tasks = Task.objects.filter(date__range=[
+            datetime.date.today() - datetime.timedelta(days=30), datetime.date.today()])
+    # elif date_from and date_to:
+    #     _tasks = Task.objects.filter(
+    #         date__gte=date_from, date__lte=date_to)
+    else:
+        _tasks = Task.objects.all()
+
+    print(datetime.date.today())
+    print(_tasks.count())
+    # Получить количество закрытых
+    _closed_tasks = _tasks.filter(status='completed').count()
+
+    # Получить количество закрытых задач по каждому пользователю за определенный срок
+    _closed_tasks_per_user = _tasks.values('executor__id', 'executor__username', 'executor__first_name', 'executor__last_name').annotate(
+        closed_count=Count('id')).filter(status='completed')
+
+    context = {
+        'tasks': _tasks,
+        'closed_tasks': _closed_tasks,
+        'closed_tasks_per_user': _closed_tasks_per_user,
+    }
+
+    return render(request, 'statistics.html', context)
+
+
+# FIX: Добавить поддержку чеклистов
+@require_POST
+def save_checklist(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    items = task.checklist_template.items.all()
+
+    for item in items:
+        status, created = ChecklistItemStatus.objects.get_or_create(
+            task=task, item=item)
+        status.checked = f'item{item.id}' in request.POST
+        status.save()
+
+    return redirect('task_detail', task_id=task.id)

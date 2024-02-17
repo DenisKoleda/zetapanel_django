@@ -1,9 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.urls import reverse
 import os
-from django.contrib.postgres.fields import ArrayField
-from django.contrib.auth.models import User
 
 
 class ChecklistTemplate(models.Model):
@@ -17,21 +14,8 @@ class ChecklistTemplate(models.Model):
         verbose_name_plural = "Шаблоны чеклистов"
 
 
-class ChecklistItem(models.Model):
-    template = models.ForeignKey(
-        ChecklistTemplate, related_name='items', on_delete=models.CASCADE)
-    name = models.CharField("Элемент", max_length=200)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "элемент чеклиста"
-        verbose_name_plural = "Элементы чеклиста"
-
-
 class Task(models.Model):
-    date = models.DateField("Дата создания", auto_now_add=True)
+    date = models.DateField("Дата создания")
     author = models.ForeignKey(
         User, verbose_name="Автор", on_delete=models.CASCADE, related_name='author_tasks')
     ticket = models.CharField("Задача", max_length=200)
@@ -131,3 +115,32 @@ class FileAttachment(models.Model):
     description = models.CharField(
         "Описание", max_length=200, blank=True, null=True)
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
+
+
+class ChecklistItem(models.Model):
+    template = models.ForeignKey(
+        ChecklistTemplate, related_name='items', on_delete=models.CASCADE)
+    name = models.CharField("Элемент", max_length=200)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "элемент чеклиста"
+        verbose_name_plural = "Элементы чеклиста"
+
+
+class ChecklistItemStatus(models.Model):
+    task = models.ForeignKey(
+        Task, on_delete=models.CASCADE, related_name='checklist_statuses', verbose_name="Задача")
+    item = models.ForeignKey(
+        ChecklistItem, on_delete=models.CASCADE, verbose_name="Элемент")
+    is_completed = models.BooleanField(
+        "Завершено", default=False, blank=True, null=True)
+
+    def __str__(self):
+        return f"Статус элемента чеклиста {self.item.name} для задачи {self.task.id}"
+
+    class Meta:
+        verbose_name = "Статус элемента чеклиста"
+        verbose_name_plural = "Статусы элементов чеклиста"

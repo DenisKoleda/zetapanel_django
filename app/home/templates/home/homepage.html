@@ -90,7 +90,7 @@
                   </a>
                   <ul class="dropdown-menu">
                     <li>
-                      <a class="dropdown-item" href="#">Активные задачи</a>
+                      <a class="dropdown-item" href="{% url 'task_list' %}?executor={{ request.user.id }}&status=active">Мои задачи</a>
                     </li>
                     <li>
                       <a class="dropdown-item" href="{% url 'task_list' %}"
@@ -112,8 +112,37 @@
                 <li class="nav-item me-lg-3">
                   <a class="nav-link active" href="/">Файлы</a>
                 </li>
-                <li class="nav-item me-lg-3">
-                  <a class="nav-link active" href="/">Профиль</a>
+                <li class="nav-item me-lg-3 dropdown">
+                  <a
+                    class="nav-link active dropdown-toggle"
+                    href="#"
+                    role="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    Профиль
+                  </a>
+                  <ul class="dropdown-menu">
+                    {% if user.is_staff %}
+                    <li>
+                      <a class="dropdown-item" href="{% url 'admin:index' %}">Админ-панель</a>
+                    </li>
+                    <li>
+                      <hr class="dropdown-divider" />
+                    </li>
+                    {% endif %}
+                    <li>
+                      <a class="dropdown-item" href="#">Профиль</a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="#">Изменить пароль</a>
+                    </li>
+                    <li>
+                      <hr class="dropdown-divider" />
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="#">Выйти</a>
+                  </ul>
                 </li>
               </ul>
 
@@ -154,11 +183,6 @@
                     <small class="d-md-none ms-2">Zabbix</small>
                   </a>
                 </li>
-                <li class="nav-item py-1 col-12 col-lg-auto">
-                  <div class="vr d-none d-lg-flex h-100 mx-lg-2"></div>
-                  <hr class="d-lg-none" />
-                </li>
-                <a class="btn btn-outline-danger" href="/">Выйти</a>
                 <li class="nav-item py-1 col-12 col-lg-auto">
                   <div class="vr d-none d-lg-flex h-100 mx-lg-2"></div>
                   <hr class="d-lg-none" />

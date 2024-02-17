@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 import os
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.contrib.auth.models import User
 
 
 @login_required
@@ -18,9 +19,16 @@ def tasks_list(request):
     priority = request.GET.get('priority')
     status = request.GET.get('status')
     page_length = request.GET.get('page_length')
+    executor = request.GET.get('executor')
+    author = request.GET.get('author')
 
     priority_choices = Task._meta.get_field('priority').choices
     status_choices = Task._meta.get_field('status').choices
+    users = User.objects.all()
+    users_choices = [(user.id, f"{user.first_name} {
+                      user.last_name}" if user.first_name and user.last_name else user.username) for user in users]
+
+    form = TaskForm(user=request.user)
 
     # Применение фильтров к запросу данных
     object_list = Task.objects.all().order_by('id')
@@ -34,7 +42,17 @@ def tasks_list(request):
         object_list = object_list.filter(priority=priority)
 
     if status != 'all' and status:
-        object_list = object_list.filter(status=status)
+        if status == 'active':
+            object_list = object_list.exclude(
+                status__in=['completed', 'canceled'])
+        else:
+            object_list = object_list.filter(status=status)
+
+    if executor != 'all' and executor:
+        object_list = object_list.filter(executor=executor)
+
+    if author != 'all' and author:
+        object_list = object_list.filter(author=author)
 
     paginator = Paginator(object_list, page_length or 10)
     page = request.GET.get('page')
@@ -46,24 +64,22 @@ def tasks_list(request):
     except EmptyPage:
         tasks = paginator.page(paginator.num_pages)
 
-    return render(request, 'tasklist/index.html', {'page': page, 'tasks': tasks, 'priority_choices': priority_choices, 'status_choices': status_choices})
+    return render(request, 'tasklist/index.html', {'page': page, 'tasks': tasks, 'priority_choices': priority_choices, 'status_choices': status_choices, 'form': form, 'users_choices': users_choices})
 
 
 def task_create(request):
     if request.method == "POST":
-        form = TaskForm(request.POST)
+        form = TaskForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
             return redirect('task_list')
-    else:
-        form = TaskForm()
-    return render(request, 'task_edit.html', {'form': form})
+    return HttpResponse('Invalid request method')
 
 
 def task_edit(request, pk):
     task = get_object_or_404(Task, pk=pk)
     if request.method == "POST":
-        form = TaskForm(request.POST, instance=task)
+        form = TaskForm(request.POST, instance=task, user=request.user)
         if form.is_valid():
             form.save()
             return redirect('task_list')
@@ -84,8 +100,9 @@ def task_view(request, pk):
     task = get_object_or_404(Task, pk=pk)
     comments = Comment.objects.filter(task=task).order_by('-created_at')
     files = FileAttachment.objects.filter(task=task).order_by('-created_at')
+    form = TaskForm(instance=task, user=request.user)
 
-    return render(request, 'task_view.html', {'task': task, 'comments': comments, 'files': files})
+    return render(request, 'taskview/task_view.html', {'task': task, 'comments': comments, 'files': files, 'form': form})
 
 
 def add_comment(request, pk):

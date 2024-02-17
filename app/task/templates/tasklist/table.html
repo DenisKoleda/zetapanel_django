@@ -8,7 +8,7 @@
               <th style="width: 5%">ID</th>
               <th style="width: 10%"><i class="bi bi-calendar3"></i> Дата</th>
               <th style="width: 10%"><i class="bi bi-person-fill"></i> Автор</th>
-                <th style="width: 20%"><i class="bi bi-card-checklist"></i> Задача</th>
+              <th style="width: 20%"><i class="bi bi-card-checklist"></i> Задача</th>
               <th style="width: 10%"><i class="bi bi-exclamation-triangle-fill"></i> Приоритет</th>
               <th style="width: 10%"><i class="bi bi-toggle-on"></i> Статус</th>
               <th style="width: 10%"><i class="bi bi-person-check-fill"></i> Назначена</th>
@@ -18,7 +18,7 @@
           <tbody class="table-group-divider">
             {% for task in tasks %}
             <tr>
-              <td data-column="ID"><a href="{% url 'task_edit' pk=task.id %}">{{ task.id }}</a></td>
+              <td data-column="ID"><a href="{% url 'task_view' pk=task.id %}">{{ task.id }}</a></td>
               <td data-column="Date">{{ task.date }}</td>
               {% if task.author.first_name and task.author.last_name %}
               <td data-column="Author">{{ task.author.first_name }} {{ task.author.last_name }}</td>
@@ -65,79 +65,90 @@
         </tbody>
       </table>
     </div>
-  </div>
-
+    
     <!-- Для маленьких экранов используем вертикальное отображение -->
     <div class="container d-block d-md-none">
-        {% for task in tasks %}
-        <div class="card mb-3">
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item"><strong>ID:</strong> {{ task.id }}</li>
-                <li class="list-group-item"><strong>Дата:</strong> {{ task.date }}</li>
-                <li class="list-group-item"><strong>Автор:</strong> {{ task.author }}</li>
-                <li class="list-group-item"><strong>Задача:</strong> <a href="{% url 'task_view' pk=task.id %}">{{ task.ticket|truncatechars:33 }}</a></li>
-                <li class="list-group-item"><strong>Приоритет:</strong> {{ task.priority }}</li>
-                <li class="list-group-item"><strong>Статус:</strong> {{ task.status }}</li>
-                <li class="list-group-item"><strong>Назначена:</strong> {{ task.executor }}</li>
-                <li class="list-group-item">
-                  <div class="dropdown">
-                    <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                      <a><i class="bi bi-three-dots-vertical"></i>Действия</a>
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                      <li><a class="dropdown-item" href="{% url 'task_view' task.id %}">Просмотреть</a></li>
-                      <li>
-                        <hr class="dropdown-divider">
-                      </li>
-                      <li><a class="dropdown-item" href="#">Редактировать</a></li>
-                      <li><a class="dropdown-item" href="#">Удалить</a></li>
-                    </ul>
-                  </div>
-                </li>
-            </ul>
+      {% for task in tasks %}
+      <div class="card mb-3">
+        <div class="card-header">
+          <strong>ID:</strong> <a href="{% url 'task_view' pk=task.id %}">{{ task.id }}</a>
         </div>
-        {% empty %}
-        <div class="alert alert-warning" role="alert">
-            Задачи не найдены.
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item"><strong>Дата:</strong> {{ task.date }}</li>
+            {% if task.author.first_name and task.author.last_name %}
+            <li class="list-group-item"><strong>Автор:</strong> {{ task.author.first_name }} {{ task.author.last_name }}</li>
+            {% else %}
+            <li class="list-group-item"><strong>Автор:</strong> {{ task.author|default_if_none:""}}</li>
+            {% endif %}
+            <li class="list-group-item"><strong>Задача:</strong> <a href="{% url 'task_view' pk=task.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ task.ticket }}">{{ task.ticket|truncatechars:33 }}</a></li>
+            <li class="list-group-item"><strong>Приоритет:</strong> {{ task.get_priority_display }}</li>
+            <li class="list-group-item"><strong>Статус:</strong> {{ task.get_status_display }}</li>
+            {% if task.executor.first_name and task.executor.last_name %}
+            <li class="list-group-item"><strong>Назначена:</strong> {{ task.executor.first_name }} {{ task.executor.last_name }}</li>
+            {% else %}
+            <li class="list-group-item"><strong>Назначена:</strong> {{ task.executor|default_if_none:"" }}</li>
+            {% endif %}
+            <li class="list-group-item">
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                  <a><i class="bi bi-three-dots-vertical"></i>Действия</a>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                  <li><a class="dropdown-item" href="{% url 'task_view' task.id %}">Просмотреть</a></li>
+                  <li>
+                    <hr class="dropdown-divider">
+                  </li>
+                  <li><a class="dropdown-item" href="#">Редактировать</a></li>
+                  <li><a class="dropdown-item" href="#">Удалить</a></li>
+                </ul>
+              </div>
+            </li>
+          </ul>
         </div>
-        {% endfor %}
+      </div>
+      {% empty %}
+      <div class="alert alert-warning" role="alert">
+        Задачи не найдены.
+      </div>
+      {% endfor %}
     </div>
 </div>
 
 <!-- Пагинация -->
 <div class="container-lg">
-    <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-end">
-        {% if tasks.has_previous %}
-        <li class="page-item">
-          <a class="page-link" href="?{% param_replace page=1 %}" aria-label="First" hx-get="{% url 'tasks_list' %}?{% param_replace page=1 %}" hx-target="#table-container">
-            <span aria-hidden="true">&laquo;&laquo;</span>
-          </a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" href="?{% param_replace page=tasks.previous_page_number %}" aria-label="Previous" hx-get="{% url 'tasks_list' %}?{% param_replace page=tasks.previous_page_number %}" hx-target="#table-container">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
-        </li>
-        {% endif %}
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-end">
+      {% if tasks.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?{% param_replace page=1 %}" aria-label="First">
+          <span aria-hidden="true">&laquo;&laquo;</span>
+        </a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="?{% param_replace page=tasks.previous_page_number %}" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      {% endif %}
 
-        <!-- Current page and total pages -->
-        <li class="page-item active" aria-current="page">
-          <span class="page-link">{{ tasks.number }} из {{ tasks.paginator.num_pages }}</span>
-        </li>
+      <!-- Current page and total pages -->
+      <li class="page-item active" aria-current="page">
+        <span class="page-link">{{ tasks.number }} из {{ tasks.paginator.num_pages }}</span>
+      </li>
 
-        {% if tasks.has_next %}
-        <li class="page-item">
-          <a class="page-link" href="?{% param_replace page=tasks.next_page_number %}" aria-label="Next" hx-get="{% url 'tasks_list' %}?{% param_replace page=tasks.next_page_number %}" hx-target="#table-container">
-            <span aria-hidden="true">&raquo;</span>
-          </a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" href="?{% param_replace page=tasks.paginator.num_pages %}" aria-label="Last" hx-get="{% url 'tasks_list' %}?{% param_replace page=tasks.paginator.num_pages %}" hx-target="#table-container">
-            <span aria-hidden="true">&raquo;&raquo;</span>
-          </a>
-        </li>
-        {% endif %}
-      </ul>
-    </nav>
-  </div>
+      {% if tasks.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?{% param_replace page=tasks.next_page_number %}" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="?{% param_replace page=tasks.paginator.num_pages %}" aria-label="Last">
+          <span aria-hidden="true">&raquo;&raquo;</span>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>

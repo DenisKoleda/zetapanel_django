@@ -1,11 +1,11 @@
 {% extends "home/homepage.html" %}
 {% load static %}
 
-{% block title %}<title>ZetaPanel | Все задачи</title>{% endblock %}
+{% block title %}<title>ZetaPanel | Задачи</title>{% endblock %}
 
 {% block content %}
 <div class="container-lg mt-3">
-    <h2 class="">Все задачи</h2>
+    <h2 class="">Задачи</h2>
 </div>
 
 <div class="container-lg">
@@ -38,8 +38,27 @@
                 <label for="statusFilter" class="form-label">Статус</label>
                 <select id="statusFilter" name="status" class="form-select">
                     <option value="all">Без фильтра</option>
+                    <option value="active" {% if request.GET.status == "active" %}selected{% endif %}>Активные</option>
                     {% for value, name in status_choices %}
                       <option value="{{ value }}" {% if value == request.GET.status %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="p-2">
+                <label for="executorFilter" class="form-label">Исполнитель</label>
+                <select id="executorFilter" name="executor" class="form-select">
+                  <option value="all">Без фильтра</option>
+                  {% for value, name in users_choices %}
+                      <option value="{{ value }}" {% if value|stringformat:"s" == request.GET.executor %}selected{% endif %}>{{ name }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+            <div class="p-2">
+                <label for="authorFilter" class="form-label">Автор</label>
+                <select id="authorFilter" name="author" class="form-select">
+                    <option value="all">Без фильтра</option>
+                    {% for value, name in users_choices %}
+                      <option value="{{ value }}" {% if value|stringformat:"s"  == request.GET.author %}selected{% endif %}>{{ name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -61,7 +80,7 @@
         </div>
       </div>
         <div class="col-8 d-flex justify-content-end">
-          <a class="btn btn-primary" href="{% url 'task_create' %}"><i class="bi bi-plus-circle-fill"></i> Добавить</a>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-circle-fill"></i> Добавить</button>
         </div>
       </div>
     </div>
@@ -71,6 +90,7 @@
 </div>
 
 {% include 'tasklist/table.html' %}
+{% include 'tasklist/add_modal.html'%}
 
 <script>
   function resetFilters() {
@@ -81,8 +101,24 @@
     url.searchParams.delete('task');
     url.searchParams.delete('page_length');
     url.searchParams.delete('q');
+    url.searchParams.delete('executor');
+    url.searchParams.delete('author');
     window.location.href = url.href; // This will reload the page with updated URL
   }
+</script>
+
+<script>
+  var socket = new WebSocket('ws://' + window.location.host + '/ws/tasks/');
+
+  socket.onmessage = function(e) {
+      var data = JSON.parse(e.data);
+      var message = data['message'];
+      // Обновите страницу или покажите уведомление
+  };
+  
+  socket.onclose = function(e) {
+      console.error('Chat socket closed unexpectedly');
+  };
 </script>
       
 <style>

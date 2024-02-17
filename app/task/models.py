@@ -31,12 +31,12 @@ class ChecklistItem(models.Model):
 
 
 class Task(models.Model):
-    date = models.DateField("Дата публикации")
+    date = models.DateField("Дата создания", auto_now_add=True)
     author = models.ForeignKey(
         User, verbose_name="Автор", on_delete=models.CASCADE, related_name='author_tasks')
-    ticket = models.CharField("Тикет", max_length=200)
+    ticket = models.CharField("Задача", max_length=200)
     ticket_comment = models.TextField(
-        "Комментарий к тикету", blank=True, null=True)
+        "Комментарий к задаче", blank=True, null=True)
     priority_choices = [
         ('low', 'Низкий'),
         ('medium', 'Средний'),

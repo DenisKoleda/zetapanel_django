@@ -93,6 +93,9 @@
                       <a class="dropdown-item" href="{% url 'task_list' %}?executor={{ request.user.id }}&status=active">Мои задачи</a>
                     </li>
                     <li>
+                      <a class="dropdown-item" href="{% url 'task_list' %}?executor=null&status=active">Свободные задачи</a>
+                    </li>
+                    <li>
                       <a class="dropdown-item" href="{% url 'task_list' %}"
                         >Все задачи</a
                       >

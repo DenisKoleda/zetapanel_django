@@ -48,6 +48,7 @@
                 <label for="executorFilter" class="form-label">Исполнитель</label>
                 <select id="executorFilter" name="executor" class="form-select">
                   <option value="all">Без фильтра</option>
+                  <option value="null" {% if request.GET.executor == "null" %}selected{% endif %}>Не назначен</option>
                   {% for value, name in users_choices %}
                       <option value="{{ value }}" {% if value|stringformat:"s" == request.GET.executor %}selected{% endif %}>{{ name }}</option>
                   {% endfor %}

@@ -27,6 +27,8 @@ def login_view(request):
             messages.error(request, "Invalid username or password")
             return redirect('login')
     else:
+        if request.user.is_authenticated:
+            return redirect('/')
         return render(request, 'login.html')
 
 

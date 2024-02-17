@@ -49,7 +49,10 @@ def tasks_list(request):
             object_list = object_list.filter(status=status)
 
     if executor != 'all' and executor:
-        object_list = object_list.filter(executor=executor)
+        if executor == 'null':
+            object_list = object_list.filter(executor=None)
+        else:
+            object_list = object_list.filter(executor=executor)
 
     if author != 'all' and author:
         object_list = object_list.filter(author=author)

@@ -48,11 +48,12 @@
                   </button>
                   <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                     <li><a class="dropdown-item" href="{% url 'task_view' task.id %}">Просмотреть</a></li>
+                    {% if user.is_staff or user.is_superuser %}
                     <li>
                       <hr class="dropdown-divider">
                     </li>
-                    <li><a class="dropdown-item" href="#">Редактировать</a></li>
-                    <li><a class="dropdown-item" href="#">Удалить</a></li>
+                    <li><a class="dropdown-item" href="{% url 'task_delete' pk=task.id %}" onclick="return confirm('Вы уверены, что хотите удалить задачу {{ task.id }}?')">Удалить</a></li>
+                    {% endif %}
                   </ul>
                 </div>
               </td>
@@ -96,11 +97,12 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                   <li><a class="dropdown-item" href="{% url 'task_view' task.id %}">Просмотреть</a></li>
+                  {% if user.is_staff or user.is_superuser %}
                   <li>
                     <hr class="dropdown-divider">
                   </li>
-                  <li><a class="dropdown-item" href="#">Редактировать</a></li>
-                  <li><a class="dropdown-item" href="#">Удалить</a></li>
+                  <li><a class="dropdown-item" href="{% url 'task_delete' pk=task.id %}" onclick="return confirm('Вы уверены, что хотите удалить задачу {{ task.id }}?')">Удалить</a></li>
+                  {% endif %}
                 </ul>
               </div>
             </li>

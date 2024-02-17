@@ -90,10 +90,9 @@ def task_edit(request, pk):
 
 def task_delete(request, pk):
     task = get_object_or_404(Task, pk=pk)
-    if request.method == "POST":
+    if request.method == "GET":
         task.delete()
         return redirect('task_list')
-    return render(request, 'task_delete.html', {'task': task})
 
 
 def task_view(request, pk):

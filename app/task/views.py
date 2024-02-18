@@ -1,3 +1,4 @@
+from .models import TaskStatus
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -10,9 +11,9 @@ from .models import Task, Comment, FileAttachment, ChecklistItemStatus
 import datetime
 import os
 from django.views.decorators.http import require_POST
+from django.db.models.functions import TruncDate
 
 
-@login_required
 def tasks_list(request):
     # Получение значений фильтров из request.GET
     q = request.GET.get('q')
@@ -31,7 +32,7 @@ def tasks_list(request):
     form = TaskForm(user=request.user)
 
     # Применение фильтров к запросу данных
-    object_list = Task.objects.all().order_by('id')
+    object_list = Task.objects.all().order_by('-id')
 
     if q:
         object_list = object_list.filter(
@@ -74,21 +75,25 @@ def task_create(request):
     if request.method == "POST":
         form = TaskForm(request.POST, user=request.user)
         if form.is_valid():
-            form.save()
+            task = form.save()
+            TaskStatus.objects.create(
+                task=task, status=task.status, executor=request.user)
             return redirect('task_list')
     return HttpResponse('Invalid request method')
 
 
 def task_edit(request, pk):
     task = get_object_or_404(Task, pk=pk)
+    old_status = task.status
     if request.method == "POST":
         form = TaskForm(request.POST, instance=task, user=request.user)
         if form.is_valid():
-            form.save()
-            return redirect('task_list')
-    else:
-        form = TaskForm(instance=task)
-    return render(request, 'task_edit.html', {'form': form})
+            task = form.save()
+            if old_status != task.status:
+                TaskStatus.objects.create(
+                    task=task, status=task.status, executor=request.user)
+            return redirect('task_view', pk=task.pk)
+    return HttpResponse('Invalid request method')
 
 
 def task_delete(request, pk):
@@ -96,6 +101,7 @@ def task_delete(request, pk):
     if request.method == "GET":
         task.delete()
         return redirect('task_list')
+    return HttpResponse('Invalid request method')
 
 
 def task_view(request, pk):
@@ -164,40 +170,53 @@ def task_statistics(request):
     # date_to = request.GET.get('date_to')
     time_filter = request.GET.get('time_filter')
 
-    if time_filter == 'day':
-        _tasks = Task.objects.filter(
-            date=datetime.date.today())
-    elif time_filter == 'week':
-        _tasks = Task.objects.filter(date__range=[
-            datetime.date.today() - datetime.timedelta(days=7), datetime.date.today()])
-    elif time_filter == 'month':
-        _tasks = Task.objects.filter(date__range=[
-            datetime.date.today() - datetime.timedelta(days=30), datetime.date.today()])
-    # elif date_from and date_to:
-    #     _tasks = Task.objects.filter(
-    #         date__gte=date_from, date__lte=date_to)
+    # Switch statement to handle different time filters
+    if time_filter and time_filter != 'all':
+        switcher = {
+            'week': datetime.date.today() - datetime.timedelta(weeks=1),
+            'two_weeks': datetime.date.today() - datetime.timedelta(weeks=2),
+            'month': datetime.date.today() - datetime.timedelta(weeks=4),
+            'three_months': datetime.date.today() - datetime.timedelta(weeks=12),
+            'six_months': datetime.date.today() - datetime.timedelta(weeks=24),
+            'year': datetime.date.today() - datetime.timedelta(weeks=52)
+        }
+        tasks = Task.objects.filter(
+            date__range=[switcher.get(time_filter), datetime.date.today()])
     else:
-        _tasks = Task.objects.all()
+        tasks = Task.objects.all()
+        # If time_filter is not specified, retrieve tasks for all time
 
-    print(datetime.date.today())
-    print(_tasks.count())
-    # Получить количество закрытых
-    _closed_tasks = _tasks.filter(status='completed').count()
+    total_tasks = tasks.count()
+    total_closed_tasks = tasks.filter(status='completed').count()
+    average_tasks_per_day = total_tasks / \
+        tasks.values('date').distinct().count() if tasks.values(
+            'date').distinct().count() != 0 else 0
 
-    # Получить количество закрытых задач по каждому пользователю за определенный срок
-    _closed_tasks_per_user = _tasks.values('executor__id', 'executor__username', 'executor__first_name', 'executor__last_name').annotate(
-        closed_count=Count('id')).filter(status='completed')
+    tasks = tasks.annotate(date_only=TruncDate('date')).values(
+        'date_only').annotate(task_count=Count('id')).order_by('date_only')
+
+    closed_tasks_per_user = Task.objects \
+        .filter(status='completed') \
+        .values('executor__id', 'executor__username', 'executor__first_name', 'executor__last_name') \
+        .annotate(closed_count=Count('id', distinct=True)) \
+        .order_by('executor__id')
+
+    dates = [task['date_only'].strftime('%Y-%m-%d') for task in tasks]
+    task_counts = [task['task_count'] for task in tasks]
 
     context = {
-        'tasks': _tasks,
-        'closed_tasks': _closed_tasks,
-        'closed_tasks_per_user': _closed_tasks_per_user,
+        'dates': dates,
+        'task_counts': task_counts,
+        'total_tasks': total_tasks,
+        'total_closed_tasks': total_closed_tasks,
+        'average_tasks_per_day': average_tasks_per_day,
+        'closed_tasks_per_user': closed_tasks_per_user
     }
 
     return render(request, 'statistics.html', context)
 
 
-# FIX: Добавить поддержку чеклистов
+# FIXME: Добавить поддержку чеклистов
 @require_POST
 def save_checklist(request, task_id):
     task = get_object_or_404(Task, id=task_id)

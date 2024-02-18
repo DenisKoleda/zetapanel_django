@@ -2,6 +2,28 @@ from django.db import models
 from django.contrib.auth.models import User
 import os
 
+STATUS_CHOICES = [
+    ('created', 'Создано'),
+    ('in_progress', 'В работе'),
+    ('completed', 'Завершено'),
+    ('postponed', 'Отложено'),
+    ('canceled', 'Отменено'),
+    ('pending', 'В ожидании'),
+    ('planned', 'В планах'),
+    ('under_review', 'На проверке'),
+    ('under_revision', 'На доработке'),
+    ('under_approval', 'На утверждении'),
+    ('under_consideration', 'На согласовании'),
+]
+
+PRIORITY_CHOICES = [
+    ('low', 'Низкий'),
+    ('medium', 'Средний'),
+    ('high', 'Высокий'),
+    ('very_high', 'Очень высокий'),
+    ('critical', 'Критический'),
+]
+
 
 class ChecklistTemplate(models.Model):
     name = models.CharField("Название", max_length=200)
@@ -15,36 +37,16 @@ class ChecklistTemplate(models.Model):
 
 
 class Task(models.Model):
-    date = models.DateField("Дата создания")
+    date = models.DateField("Дата создания", auto_now_add=True)
     author = models.ForeignKey(
         User, verbose_name="Автор", on_delete=models.CASCADE, related_name='author_tasks')
     ticket = models.CharField("Задача", max_length=200)
     ticket_comment = models.TextField(
         "Комментарий к задаче", blank=True, null=True)
-    priority_choices = [
-        ('low', 'Низкий'),
-        ('medium', 'Средний'),
-        ('high', 'Высокий'),
-        ('very_high', 'Очень высокий'),
-        ('critical', 'Критический'),
-    ]
     priority = models.CharField(
-        "Приоритет", max_length=200, choices=priority_choices, default='low')
-    status_choices = [
-        ('created', 'Создано'),
-        ('in_progress', 'В работе'),
-        ('completed', 'Завершено'),
-        ('postponed', 'Отложено'),
-        ('canceled', 'Отменено'),
-        ('pending', 'В ожидании'),
-        ('planned', 'В планах'),
-        ('under_review', 'На проверке'),
-        ('under_revision', 'На доработке'),
-        ('under_approval', 'На утверждении'),
-        ('under_consideration', 'На согласовании'),
-    ]
+        "Приоритет", max_length=200, choices=PRIORITY_CHOICES, default='low')
     status = models.CharField("Статус", max_length=200,
-                              choices=status_choices, default='1')
+                              choices=STATUS_CHOICES, default='1')
     executor = models.ForeignKey(
         User, verbose_name="Исполнитель", on_delete=models.CASCADE, related_name='executor_tasks', blank=True, null=True)
 
@@ -59,6 +61,24 @@ class Task(models.Model):
         verbose_name = "Задача"
         verbose_name_plural = "Задачи"
         ordering = ['-id']  # Пример сортировки по умолчанию
+
+
+class TaskStatus(models.Model):
+    task = models.ForeignKey(
+        Task, on_delete=models.CASCADE, related_name='statuses', verbose_name="Задача")
+    executor = models.ForeignKey(
+        User, on_delete=models.CASCADE, verbose_name="Исполнитель", related_name='executor_statuses')
+    status = models.CharField(
+        max_length=200, choices=STATUS_CHOICES, verbose_name="Статус")
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Дата")
+
+    def __str__(self) -> str:
+        return f"Статус {self.status} для задачи {self.task.id}"
+
+    class Meta:
+        verbose_name = "Статус задачи"
+        verbose_name_plural = "Статусы задачи"
+        ordering = ['-id']
 
 
 class Comment(models.Model):

@@ -1,60 +1,109 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Task Statistics</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container">
-        <h2>Task Statistics</h2>
-        <canvas id="taskChart"></canvas>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">Executor</th>
-                    <th scope="col">Closed Tasks</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in closed_tasks_per_user %}
-                <tr>
-                    <td>{{ user.executor__first_name }} {{ user.executor__last_name }}</td>
-                    <td>{{ user.closed_count }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+{% extends "home/homepage.html" %}
 
-    <script>
-        var ctx = document.getElementById('taskChart').getContext('2d');
-        var chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Tasks Created', 'Tasks Closed'],
-                datasets: [{
-                    label: 'Tasks',
-                    data: [{{ tasks.count }}, {{ closed_tasks }}],
-                    backgroundColor: [
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(255, 99, 132, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(255, 99, 132, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
+{% block content %}
+<div class="container mt-3">
+    <h2 class="mb-3">Статистка по задачам</h2>
+
+    <form method="GET" action="{% url 'statistics' %}" class="row g-3 align-center">
+        <div class="col-12 col-md-4">
+            <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                Фильтры
+            </button>
+        </div>
+        <div class="collapse col-12" id="filterCollapse">
+            <div class="col-12 col-md-4">
+                <label for="time_filter" class="form-label">Фильтр времени:</label>
+                <select id="time_filter" name="time_filter" class="form-select">
+                    <option selected>Выберите...</option>
+                    <option value="all" {% if request.GET.time_filter == 'all' %}selected{% endif %}>All</option>
+                    <option value="week" {% if request.GET.time_filter == 'week' %}selected{% endif %}>Week</option>
+                    <option value="two_weeks" {% if request.GET.time_filter == 'two_weeks' %}selected{% endif %}>Two Weeks</option>
+                    <option value="month" {% if request.GET.time_filter == 'month' %}selected{% endif %}>Month</option>
+                    <option value="three_months" {% if request.GET.time_filter == 'three_months' %}selected{% endif %}>Three Months</option>
+                    <option value="six_months" {% if request.GET.time_filter == 'six_months' %}selected{% endif %}>Six Months</option>
+                    <option value="year" {% if request.GET.time_filter == 'year' %}selected{% endif %}>Year</option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-auto mt-3">
+                <label class="form-label">Действия:</label>
+                <div class="col-auto mt-1">
+                    <button type="submit" class="btn btn-primary">Применить</button>
+                    <a href="{% url 'statistics' %}" class="btn btn-danger">Сбросить</a>
+                </div>
+            </div>
+        </div>
+    </form>
+    <canvas class="mt-4" style="" id="tasksChart"></canvas>
+    {% comment %} Среднее количество задач и всего задач и всего закрытых {% endcomment %}
+    <div class="row mt-4">
+        <div class="col-4">
+            <h4>Среднее количество задач в день</h4>
+            <p>{{ average_tasks_per_day|floatformat:2 }}</p>
+        </div>
+        <div class="col-4">
+            <h4>Всего создано задач</h4>
+            <p>{{ total_tasks }}</p>
+        </div>
+        <div class="col-4">
+            <h4>Всего закрыто задач</h4>
+            <p>{{ total_closed_tasks }}</p>
+        </div>
+    </div>
+    <h2 class="mt-4">Статистика по пользователям:</h2>
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th scope="col">Имя пользователя</th>
+                <th scope="col">Закрытых задач</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in closed_tasks_per_user %}
+            <tr>
+                <td>{% if user.executor__username %} {{ user.executor__first_name }} {{ user.executor__last_name }} ({{ user.executor__username }}) {% else %} Без исполнителя {% endif %}</td>
+                <td>{{ user.closed_count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var ctx = document.getElementById('tasksChart').getContext('2d');
+      var tasksChart = new Chart(ctx, {
+          type: 'line', // Тип графика: линейный, столбчатый и т.д.
+          data: {
+              labels: {{ dates|safe }}, // Здесь ваш массив с датами
+              datasets: [{
+                  label: 'Созданные задачи',
+                  backgroundColor: 'rgb(0, 123, 255)', // Цвет фона
+                  borderColor: 'rgb(0, 123, 255)', // Цвет границы
+                  data: {{ task_counts|safe }}, // Здесь ваш массив с количеством задач
+              }]
+          },
+          options: {
+              scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Дата создания задачи'
                     }
+                },
+                y: {
+                      beginAtZero: true,
+                      display: true,
+                        title: {
+                            display: true,
+                            text: 'Количество задач'
+                        }
                 }
             }
-        });
-    </script>
-</body>
-</html>
+          }
+      });
+    });
+</script>
+
+{% endblock %}

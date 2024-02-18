@@ -1,12 +1,13 @@
 # home/urls.py
 
 from django.urls import path
-from django.contrib.auth.views import LoginView
 from . import views
+from django.contrib.auth.decorators import login_required
 
 urlpatterns = [
-    path('', views.homepage_view, name='homepage'),
+    path('', login_required(views.homepage_view), name='homepage'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    path('change_password/', views.change_password, name='change_password'),
+    path('change_password/', login_required(views.change_password),
+         name='change_password'),
 ]

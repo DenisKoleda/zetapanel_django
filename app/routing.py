@@ -1,7 +1,7 @@
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.urls import re_path
 
-from app.task import consumers
+from task import consumers
 
 application = ProtocolTypeRouter({
     "websocket": URLRouter([
